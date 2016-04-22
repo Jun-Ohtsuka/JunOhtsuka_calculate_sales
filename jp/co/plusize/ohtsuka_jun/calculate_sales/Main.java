@@ -1,11 +1,17 @@
 package jp.co.plusize.ohtsuka_jun.calculate_sales;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,6 +20,11 @@ class InvalidException extends Exception{
 		super(message);
 	}
 }
+
+class EntryMap {
+
+}
+
 
 public class Main {
 	public static void main(String[] args) {
@@ -246,7 +257,7 @@ public class Main {
 							int sum = getComsum + getComval;
 
 							sumCom.put(comKey,sum);
-							System.out.println(sumCom);
+							//System.out.println(sumCom);
 							comcounter++;
 
 							//合計が10桁以下かどうか
@@ -285,9 +296,125 @@ public class Main {
 		 */
 
 
+		//sumCom//商品集計のHashMap
+		//sumBran//支店集計のHashMap
+		System.out.println(sumCom);
 
 		//売上データ出力
 
+		//商品合計出力用にマップをソートする
+		//Map.Entry のリストを作る
+		List<Entry<String, Integer>> entriesCom = new ArrayList<Entry<String, Integer>>(sumCom.entrySet());
+		//Comparator で Map.Entry の値を比較
+		Collections.sort(entriesCom, new Comparator<Entry<String, Integer>>() {
+			//比較関数
+			@Override
+			public int compare(Entry<String, Integer> o1, Entry<String, Integer> o2) {
+				return o2.getValue().compareTo(o1.getValue());    //降順
+			}
+		});
+		ArrayList<String> outComList = new ArrayList<String>();
+		//outList.add(entries.get(0));
+		//並び替えたエントリーマップを1行ごとに連結してリストに格納
+		for (Entry<String, Integer> e : entriesCom) {
+			System.out.println(e.getKey() + " = " + e.getValue());
+			String outKey = e.getKey();
+			String outName = commodity.get(outKey);
+			String outVal = String.valueOf(e.getValue());
+			String out = outKey + "," + outName + "," + outVal;//1行に連結
+			outComList.add(out);
+		}
+
+
+		//支店合計出力用にマップをソートする
+		//Map.Entry のリストを作る
+		List<Entry<String, Integer>> entriesBran = new ArrayList<Entry<String, Integer>>(sumBran.entrySet());
+		//Comparator で Map.Entry の値を比較
+		Collections.sort(entriesBran, new Comparator<Entry<String, Integer>>() {
+			//比較関数
+			@Override
+			public int compare(Entry<String, Integer> o1, Entry<String, Integer> o2) {
+				return o2.getValue().compareTo(o1.getValue());    //降順
+			}
+		});
+		ArrayList<String> outBranList = new ArrayList<String>();
+		//outList.add(entries.get(0));
+		//並び替えたエントリーマップを1行ごとに連結してリストに格納
+		for (Entry<String, Integer> e : entriesBran) {
+			System.out.println(e.getKey() + " = " + e.getValue());
+			String outKey = e.getKey();
+			String outName = branch.get(outKey);
+			String outVal = String.valueOf(e.getValue());
+			String out = outKey + "," + outName + "," + outVal;//1行に連結
+			outBranList.add(out);
+		}
+
+		//System.out.println(entriesCom);
+		System.out.println(outComList);
+		System.out.println(outBranList);
+
+		//ファイル操作
+		//commodity.outファイルが存在するかどうか検索
+		try{
+			for(int i = 0; i < 2; i++){
+				File file = new File(args[0] + "\\commodity.out");
+				if(file.exists()){
+					//System.out.println("ファイルはあります");
+					FileWriter fw = new FileWriter(file);
+					BufferedWriter bw = new BufferedWriter(fw);
+					for(int f = 0; f < outComList.size(); f++){
+						bw.write(outComList.get(f) + "\r\n");
+						//System.out.println("書き込み");
+					}//for(int f;)~~
+					bw.close();
+					System.out.println("書き込み完了");
+					break;
+				}else{
+					//System.out.println("ファイルはない");
+					//ない場合ファイルを作成する
+					try{
+						file.createNewFile();
+						System.out.println("commodity.outファイルを作成しました");
+					}catch(IOException e){
+						System.out.println(e);
+					}//try~~catch
+				}//if~~else
+			}//for(int i;)~~
+		}catch(IOException e){
+			System.out.println(e);
+		}//try~~Catch
+
+
+		//ファイル操作
+		//branch.outファイルが存在するかどうか検索
+		try{
+			for(int i = 0; i < 2; i++){
+				File file = new File(args[0] + "\\branch.out");
+				if(file.exists()){
+					//System.out.println("ファイルはあります");
+					FileWriter fw = new FileWriter(file);
+					BufferedWriter bw = new BufferedWriter(fw);
+					for(int f = 0; f < outBranList.size(); f++){
+						bw.write(outBranList.get(f) + "\r\n");
+						//System.out.println("書き込み");
+					}//for(int f;)~~
+					bw.close();
+					System.out.println("書き込み完了");
+					break;
+				}else{
+					//System.out.println("ファイルはない");
+					//ない場合ファイルを作成する
+					try{
+						file.createNewFile();
+						System.out.println("branch.outファイルを作成しました");
+					}catch(IOException e){
+						System.out.println(e);
+					}//try~~catch
+				}//if~~else
+			}//for(int i;)~~
+		}catch(IOException e){
+			System.out.println(e);
+		}//try~~Catch
 
 	}//void main
 }//class MAIN
