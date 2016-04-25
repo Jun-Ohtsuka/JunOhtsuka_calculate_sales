@@ -236,16 +236,14 @@ public class Main {
 		//連番かどうかの確認
 		try{
 			//rcdファイル名の確認
-			int f = 1;
 			for (int i = 0; i < files.length; i++){
 				String fileRcd = files[i];
 				//rcdファイルだけを抜き出し処理する
 				if(fileRcd.contains("rcd")){
-					String key = String.valueOf(f);
+					String key = String.valueOf(i +1);
 					//ファイル名が8桁+.rcdじゃないファイルをはじく処理
 					if(files[i].length() == 12){
 						rcdName.put(key,files[i]);
-						f++;
 					}//if(file[i].length)~~
 				}//if(fileRcd.contains)~~
 			}//for(int i = 0; ~~)
@@ -316,7 +314,7 @@ public class Main {
 
 				//売上ファイルのフォーマット(行数)が適正かどうかの判定
 				if(listRcd.size() != 3){
-					throw new InvalidException(rcdName.get(String.valueOf(i + 1)) + "のフォーマットが不正です。");
+					throw new InvalidException(rcdName.get(String.valueOf(i + 1)) + "のフォーマットが不正です");
 				}//if(strRcd.len)~~
 
 				//支店コードと一致しているかの判定
