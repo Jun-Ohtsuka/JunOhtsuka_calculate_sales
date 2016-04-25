@@ -129,15 +129,17 @@ class CheckCode extends Exception{
 					int getSum = z.get(key);
 					int getVal = Integer.parseInt(y.get(2));
 					int sum = getSum + getVal;
-					z.put(key,sum);
-					counter++;
+					if(x.containsKey(key)){
+						z.put(key,sum);
+						counter++;
+					}
 					//合計が10桁以下かどうか
 					String strSum = String.valueOf(z.get(key));
 					if(strSum.length() > 10){
 						throw new InvalidException("合計金額が10桁を超えました");
 					}//if(sum)~~
 				}//if(j == 99999)else if(y.get(code).equals(key))
-				if(z.size() == x.size()){
+				if(counter == x.size()){
 					return;
 				}//if(z.size() ==)~~
 			}//for(int j;)~~
