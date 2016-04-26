@@ -23,60 +23,56 @@ class InvalidException extends Exception{
 }//class
 
 
-class OpenFile extends Exception{
-	void Open(String x, HashMap<String, String> y, String z){
+class OpenFile extends Exception {
+	@SuppressWarnings("finally")
+	boolean Open(String x, HashMap<String, String> y, String z) {
+		boolean a = true;
 		try {
 			//支店定義ファイルのデータを読み込む
-			//System.out.println(args[0]);//デバッグ用
 			File file = new File (x);
-			//System.out.println(file);//デバッグ用
 			FileReader fileRead = new FileReader(file);
-			//System.out.println(fileRead);//デバッグ用
 			BufferedReader buffRead = new BufferedReader(fileRead);
-			//System.out.println(buffRead);//デバッグ用
 			String str;
 			String[] list;
-			while((str = buffRead.readLine()) != null){
-				//","で分割してHashMapに追加
-				list = str.split(",");
-				//System.out.println(Arrays.asList(list));//デバッグ用
-				try {
+			try{
+				while((str = buffRead.readLine()) != null){
+					//","で分割してHashMapに追加
+					list = str.split(",");
 					//ファイルの中身の確認
 					if(list.length != 2){
-						throw new InvalidException(z + "定義ファイルのフォーマットが不正です");
+						System.out.println(z + "定義ファイルのフォーマットが不正です");
+						a = false;
 					}//if(list.length)~~
 					//ファイルのコードフォーマットが適切かどうかの確認
 					if(z == "支店"){
 						if(list[0].length() != 3){
-							throw new InvalidException(z + "定義ファイルのフォーマットが不正です");
+							System.out.println(z + "定義ファイルのフォーマットが不正です");
+							a = false;
 						}//if(errorCheck)//支店
 					} else
 					if(z == "商品"){
 						if(list[0].length() != 8){
-							throw new InvalidException(z + "定義ファイルのフォーマットが不正です");
+							System.out.println(z + "定義ファイルのフォーマットが不正です");
+							a = false;
 						}
 					}//if(z ==)
 					y.put(list[0],list[1]);
-					//System.out.println(y);
-				} catch(InvalidException e){
-					System.out.println(e);
-					buffRead.close();
-					fileRead.close();
-					return;
-				}//try~~catch
-			}//while((s = br.readLine()) != null)
-			buffRead.close();
-			fileRead.close();
-		} catch(IOException e){
-				System.out.println(z + "定義ファイルが存在しません");
-				return;
-		}//try~catch
-	}//void
+				}//while((s = br.readLine()) != null)
+			}finally{
+				buffRead.close();
+				fileRead.close();
+			}
+		}catch (IOException e){
+			System.out.println(z + "定義ファイルが存在しません");
+		}finally{
+			return a;
+		}
+	}//boolean Open
 }//class
 
 
 class JoinCode{
-	void Join(HashMap<String,String> x, HashMap<String, Integer> y,String z){
+	HashMap<String, Integer> Join(HashMap<String,String> x, HashMap<String, Integer> y, String z){
 		for (int i = 0; i < 99999; i++){
 			String key = String.valueOf(i + 1);
 			if(z == "商品"){
@@ -93,66 +89,67 @@ class JoinCode{
 				y.put(key, 0);
 			}//if(x.containsKey)~~
 			if(y.size() == x.size()){
-				return;
+				return y;
 			}//if(y,size() ==)~~
 		}//for(int i;~~)
+		return y;
 	}
 }
 
 
 class CheckCode extends Exception{
-	void Check(HashMap<String, String> x, ArrayList<String> y, HashMap<String, Integer> z, HashMap<String, String> l, int m, String n){
-		try {
-			int counter = 0;
-			for (int j = 0; j <= 99999; j++){
-				String key = String.valueOf(j + 1);
-				int code = -1;
-				if(n == "商品"){
-					while (key.length() < 5){
-						key ="0" + key;
-					}//while(key.len)
-					key = "SFT" + key;
-					code = 1;
-				} else if(n == "支店"){
-					while (key.length() < 3){
-						//System.out.println(f + 1);//デバッグ用
-						//System.out.println(x.keySet());
-						key ="0" + key;
-					}//while(key.len)
-					code = 0;
-				}//if(n == )~~
-				if(j == 99999 && counter <= 0){
-					//一つもコードが一緒じゃなかったとき
-					throw new InvalidException(l.get(String.valueOf(m + 1)) + "の" + n +"コードが不正です");
-				}else if(y.get(code).equals(key)){
-					//一致しているので合計に計算
+	boolean Check(HashMap<String, String> x, ArrayList<String> y, HashMap<String, Integer> z, HashMap<String, String> l, int m, String n){
+		int counter = 0;
+		boolean a = true;
+		for (int j = 0; j <= 99999; j++){
+			String key = String.valueOf(j + 1);
+			int code = -1;
+			if(n == "商品"){
+				while (key.length() < 5){
+					key ="0" + key;
+				}//while(key.len)
+				key = "SFT" + key;
+				code = 1;
+			} else if(n == "支店"){
+				while (key.length() < 3){
+					key ="0" + key;
+				}//while(key.len)
+				code = 0;
+			}//if(n == )~~
+			if(j == 99999 && counter <= 0){
+				//一つもコードが一緒じゃなかったとき
+				System.out.println(l.get(String.valueOf(m + 1)) + "の" + n +"コードが不正です");
+				a = false;
+				return a;
+			}else if(y.get(code).equals(key)){
+				//一致しているので合計に計算
+				if(x.containsKey(key)){
 					int getSum = z.get(key);
 					int getVal = Integer.parseInt(y.get(2));
 					int sum = getSum + getVal;
-					if(x.containsKey(key)){
-						z.put(key,sum);
-						counter++;
-					}
-					//合計が10桁以下かどうか
-					String strSum = String.valueOf(z.get(key));
-					if(strSum.length() > 10){
-						throw new InvalidException("合計金額が10桁を超えました");
-					}//if(sum)~~
-				}//if(j == 99999)else if(y.get(code).equals(key))
+					z.put(key,sum);
+					counter++;
+				}
+				//合計が10桁以下かどうか
+				String strSum = String.valueOf(z.get(key));
+				if(strSum.length() > 10){
+					System.out.println("合計金額が10桁を超えました");
+					a = false;
+					return a;
+				}//if(sum)~~
 				if(counter == x.size()){
-					return;
-				}//if(z.size() ==)~~
-			}//for(int j;)~~
-		} catch (InvalidException e) {
-			System.out.println(e);
-			return;
-		}//try~~catch
-	}//void
+					return a;
+				}//if(counter ==)~~
+			}//if(j == 99999)else if(y.get(code).equals(key))
+		}//for(int j;)~~
+		return a;
+	}//boolean Check
 }//class
 
 
 class SortMap{
-	void Sort(HashMap<String, Integer> x, HashMap<String,String> y, ArrayList<String> z){
+	ArrayList<String> Sort(HashMap<String, Integer> x, HashMap<String,String> y){
+		ArrayList<String> z = new ArrayList<String>();
 		//Map.Entry のリストを作る
 		List<Entry<String, Integer>> entries = new ArrayList<Entry<String, Integer>>(x.entrySet());
 		//Comparator で Map.Entry の値を比較
@@ -166,19 +163,20 @@ class SortMap{
 		//outList.add(entries.get(0));
 		//並び替えたエントリーマップを1行ごとに連結してリストに格納
 		for (Entry<String, Integer> e : entries) {
-			//System.out.println(e.getKey() + " = " + e.getValue());//デバッグ用
 			String outKey = e.getKey();
 			String outName = y.get(outKey);
 			String outVal = String.valueOf(e.getValue());
 			String out = outKey + "," + outName + "," + outVal;//1行に連結
 			z.add(out);
 		}//for
+		return z;
 	}
 }
 
 
 class OutputFile extends Exception{
-	void OutPut(String x, String y, ArrayList<String> z){
+	boolean OutPut(String x, String y, ArrayList<String> z){
+		boolean a = true;
 		try{
 			for(int i = 0; i < 2; i++){
 				File file = new File(x + y);
@@ -189,6 +187,7 @@ class OutputFile extends Exception{
 						bw.write(z.get(f) + "\r\n");
 					}//for(int f;)~~
 					bw.close();
+					fw.close();
 					System.out.println(y + "ファイルの書き込み完了");
 					break;
 				}else{
@@ -198,15 +197,16 @@ class OutputFile extends Exception{
 						System.out.println(y + "ファイルを作成しました");
 					}catch(IOException e){
 						System.out.println(e);
-						return;
+						return a;
 					}//try~~catch
 				}//if~~else
 			}//for(int i;)~~
 		}catch(IOException e){
 			System.out.println(e);
-			return;
+			return a;
 		}//try~~Catch
-	}//void
+		return a;
+	}//boolean OutPut
 }//class
 
 
@@ -219,14 +219,23 @@ public class Main {
 		HashMap<String, String> commodity = new HashMap<String, String>();
 		//売上データのファイル名を保存するためのHashMap
 		HashMap<String, String> rcdName = new HashMap<String, String>();
+		//例外処理を判定する変数
+		boolean exception = true;
 
 		//支店定義ファイルの読み込み
 		OpenFile openBran = new OpenFile();
-		openBran.Open(args[0] + "\\branch.lst", branch, "支店");
+		exception = openBran.Open(args[0] + "\\branch.lst", branch, "支店");
 		//System.out.println(branch);//デバッグ用
+		if(!exception){
+			return;
+		}
 		//商品定義ファイルの読み込み
 		OpenFile openCom = new OpenFile();
-		openCom.Open(args[0] + "\\commodity.lst", commodity, "商品");
+		exception = openCom.Open(args[0] + "\\commodity.lst", commodity, "商品");
+		//boolean checkException = (exception == 1);
+		if(!exception){
+			return;
+		}
 
 		//売上ファイルの名前読み込み
 		String path = args[0];
@@ -247,7 +256,6 @@ public class Main {
 					}//if(file[i].length)~~
 				}//if(fileRcd.contains)~~
 			}//for(int i = 0; ~~)
-			//System.out.println(rcdName);//デバッグ用
 			int rcdcount = rcdName.size();
 
 			//rcdファイルが0だった場合のエラー処理
@@ -263,7 +271,6 @@ public class Main {
 				Matcher m = p.matcher(name);
 				if(m.find() == false){
 					throw new InvalidException("売上ファイル名が連番ではありません");
-				//} else{System.out.println("マッチ");//デバッグ用
 				}//if
 			}//for(i = 1; ~~)
 		} catch(InvalidException e){
@@ -280,11 +287,9 @@ public class Main {
 		//統計用HashMapに支店コードと合計を結びつける処理
 		JoinCode mapCodeBran = new JoinCode();
 		mapCodeBran.Join(branch, sumBran,"支店");
-		//System.out.println(sumBran);//デバッグ用
 		//統計用HashMapに商品コードと合計を結びつける処理
 		JoinCode mapCodeCom = new JoinCode();
 		mapCodeCom.Join(commodity,sumCom,"商品");
-		//System.out.println(sumCom);//デバッグ用
 
 		//売上ファイルのデータ読み込み
 		try {
@@ -300,8 +305,6 @@ public class Main {
 					while((strRcd = rcdBuffRead.readLine()) != null){
 						//System.out.println(strRcd);//デバッグ用
 						listRcd.add(strRcd);
-						//System.out.println("ListRcdのデバッグ");
-						//System.out.println(listRcd);//デバッグ用
 					}//while((strRcd = brRcd.readLine()) != null)
 				} catch(IOException e){
 					System.out.println(e);
@@ -310,7 +313,6 @@ public class Main {
 					rcdBuffRead.close();
 					rcdFileRead.close();
 				}//try~~
-				//System.out.println(listRcd);//デバッグ用
 
 				//売上ファイルのフォーマット(行数)が適正かどうかの判定
 				if(listRcd.size() != 3){
@@ -319,10 +321,16 @@ public class Main {
 
 				//支店コードと一致しているかの判定
 				CheckCode codeBran = new CheckCode();
-				codeBran.Check(branch, listRcd, sumBran, rcdName, i, "支店");
+				exception = codeBran.Check(branch, listRcd, sumBran, rcdName, i, "支店");
+				if(!exception){
+					return;
+				}
 				//商品コードと一致しているかの判定
 				CheckCode codeCom = new CheckCode();
-				codeCom.Check(commodity, listRcd, sumCom, rcdName, i, "商品");
+				exception = codeCom.Check(commodity, listRcd, sumCom, rcdName, i, "商品");
+				if(!exception){
+					return;
+				}
 
 			}//for(int i;~~)
 		} catch(IOException e){
@@ -338,21 +346,27 @@ public class Main {
 		//支店合計出力用にマップをソートする
 		ArrayList<String> outBranList = new ArrayList<String>();
 		SortMap sortBran = new SortMap();
-		sortBran.Sort(sumBran, branch, outBranList);
+		outBranList = sortBran.Sort(sumBran, branch);
 		//System.out.println(outBranList);//デバッグ用
 
 		//商品合計出力用にマップをソートする
 		ArrayList<String> outComList = new ArrayList<String>();
 		SortMap sortCom = new SortMap();
-		sortCom.Sort(sumCom, commodity, outComList);
+		outComList = sortCom.Sort(sumCom, commodity);
 
 		//ファイル操作
 		//branch.out
 		OutputFile outBran = new OutputFile();
-		outBran.OutPut(args[0], "\\branch.out", outBranList);
+		exception = outBran.OutPut(args[0], "\\branch.out", outBranList);
+		if(!exception){
+			return;
+		}
 		//commodity.out
 		OutputFile outCom = new OutputFile();
-		outCom.OutPut(args[0], "\\commodity.out", outComList);
+		exception = outCom.OutPut(args[0], "\\commodity.out", outComList);
+		if(!exception){
+			return;
+		}
 
 	}//void main
 }//class MAIN
