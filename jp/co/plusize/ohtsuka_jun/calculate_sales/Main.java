@@ -197,13 +197,13 @@ class OutputFile extends Exception{
 					}//for(int f;)~~
 					bw.close();
 					fw.close();
-					System.out.println(y + "ファイルの書き込み完了");
+					System.out.println(y + "ファイルの書き込み完了");//デバッグ用
 					break;
 				}else{
 					//ない場合ファイルを作成する
 					try{
 						file.createNewFile();
-						System.out.println(y + "ファイルを作成しました");
+						System.out.println(y + "ファイルを作成しました");//デバッグ用
 					}catch(IOException e){
 						System.out.println(e);
 						return a;
@@ -230,8 +230,8 @@ public class Main {
 		HashMap<String, String> rcdName = new HashMap<String, String>();
 		//例外処理を判定する変数
 		boolean exception = true;
-		System.out.println(args[0]);
 		if(args.length != 1){
+			System.out.println("args");//デバッグ用
 			System.out.println("予期せぬエラーが発生しました");
 			return;
 		}
@@ -254,33 +254,72 @@ public class Main {
 		//売上ファイルの名前読み込み
 		String path = args[0];
 		File dir = new File(path);
+		File[] fileList = dir.listFiles();
 		String[] files = dir.list();
+		int dirCounter = 0;
+		int iCounter = 0;
+		ArrayList<String> rcdList = new ArrayList<String>();
+		//.rcdの名前がついているものだけを抜き出し
+		for (int i = 0 ; i < fileList.length ; i++){
+			if(files[i].contains("rcd")){
+				rcdList.add(files[i]);
+			}
+		}//for(int i;)~~
+		//ディレクトリかファイルかを判定
+		for (int i = 0 ; i < rcdList.size() ; i++){
+			if(files[i].contains("rcd")){
+				if (!fileList[i].isFile()){
+					// ディレクトリだった時の処理
+					dirCounter = i;
+					//System.out.println("dir:" + dirCounter);//デバッグ用
+				}//if(files[i])
+			}//if(fileList[i])
+			iCounter = i;
+		}
+		//System.out.println(rcdList.get(0));//デバッグ用
 
-		//連番かどうかの確認
-		try{
-			//rcdファイル名の確認
-			for (int i = 0; i < files.length; i++){
-				//rcdファイルだけを抜き出し処理する
+		//rcdListの途中にディレクトリが存在するならエラー
+		if(dirCounter != iCounter){
+			System.out.println("売上ファイルが連番ではありません");
+			return;
+		}else if(dirCounter == iCounter){
+			//rcdListの最後がディレクトリなので最後を除きput
+			for (int i = 0 ; i < dirCounter; i++){
+				//System.out.println("デバッグ！");//デバッグ用
 				//連番確認処理
 				String checkName =  "\\d{8}.rcd";
 				Pattern p = Pattern.compile(checkName);
-				String name = files[i];
+				//System.out.println(p);//デバッグ用
+				String name = rcdList.get(i);
+				//System.out.println(name);//デバッグ用
 				Matcher m = p.matcher(name);
 				if(m.find()){
-					System.out.println("できてる！");//デバッグ用
-					String key = String.valueOf(i +1);
-						rcdName.put(key,files[i]);
-				}//if(fileRcd.contains)~~
-			}//for(int i = 0; ~~)
-			System.out.println(rcdName);
-			//rcdファイルが0だった場合のエラー処理
-			if(rcdName.size() ==0){
-				throw new InvalidException("予期せぬエラーが発生しました");
-			}//if(rudName.size == 0)~~
-		} catch(InvalidException e){
-			System.out.println(e);
+					//System.out.println("できてる！");//デバッグ用
+					String key = String.valueOf(i + 1);
+					rcdName.put(key,rcdList.get(i));
+					//System.out.println(rcdName);//デバッグ用
+				}//if(m.find())~~
+			}//for(int i;)~~
+		}//if
+
+		//rcdファイルが0だった場合のエラー処理
+		if(rcdName.size() ==0){
+			System.out.print("０だよ");
+			System.out.println("売上ファイルが連番ではありません");
 			return;
-		}//try~~catch
+		}//if(rudName.size == 0)~~
+
+		//連番確認処理
+		for(int i = 1; i <= rcdName.size(); i++){
+			String checkName = String.valueOf(i) + ".rcd" + "$";
+			Pattern p = Pattern.compile(checkName);
+			String name = rcdName.get(String.valueOf(i));
+			Matcher m = p.matcher(name);
+			if(m.find() == false){
+				System.out.println("売上ファイル名が連番ではありません");
+				return;
+			}//if
+		}//for(i = 1; ~~)
 
 		//統計用データ格納作成
 		//支店データ統計用HashMap
@@ -320,7 +359,8 @@ public class Main {
 
 				//売上ファイルのフォーマット(行数)が適正かどうかの判定
 				if(listRcd.size() != 3){
-					throw new InvalidException(rcdName.get(String.valueOf(i + 1)) + "のフォーマットが不正です");
+					System.out.println(rcdName.get(String.valueOf(i + 1)) + "のフォーマットが不正です");
+					return;
 				}//if(strRcd.len)~~
 
 				//支店コードと一致しているかの判定
@@ -340,9 +380,7 @@ public class Main {
 
 			}//for(int i;~~)
 		} catch(IOException e){
-			System.out.println("予期せぬエラーが発生しました");
-			return;
-		} catch(InvalidException e){
+			System.out.println("IO");//デバッグ用
 			System.out.println(e);
 			return;
 		}//try~catch
