@@ -27,6 +27,7 @@ class OpenFile extends Exception {
 	@SuppressWarnings("finally")
 	boolean Open(String x, HashMap<String, String> y, String z) {
 		boolean a = true;
+		//System.out.println(x);//デバッグ用
 		try {
 			//支店定義ファイルのデータを読み込む
 			File file = new File (x);
@@ -42,26 +43,32 @@ class OpenFile extends Exception {
 					if(list.length != 2){
 						System.out.println(z + "定義ファイルのフォーマットが不正です");
 						a = false;
+						return a;
 					}//if(list.length)~~
 					//ファイルのコードフォーマットが適切かどうかの確認
 					if(z == "支店"){
-						String checkName =  "\\d{3}";
+						String checkName =  "^\\d{3}$";
 						Pattern p = Pattern.compile(checkName);
-						String name = list[0];
-						Matcher m = p.matcher(name);
-						if(!m.find()){
+						//System.out.println(p);//デバッグ用
+						//String name = list[0];//デバッグ用
+						System.out.println(list[0]);//デバッグ用
+						Matcher m = p.matcher(list[0]);
+						//System.out.println(m.find() == false);//デバッグ用
+						if(m.find() == false){
 							System.out.println(z + "定義ファイルのフォーマットが不正です");
 							a = false;
+							return a;
 						}//if(errorCheck)//支店
 					} else
 					if(z == "商品"){
-						String checkName =  "[a-zA-Z]{3}\\d{5}";
+						String checkName =  "^[a-zA-Z]{3}\\d{5}$";
 						Pattern p = Pattern.compile(checkName);
 						String name = list[0];
 						Matcher m = p.matcher(name);
-						if(!m.find()){
+						if(m.find() == false){
 							System.out.println(z + "定義ファイルのフォーマットが不正です");
 							a = false;
+							return a;
 						}
 					}//if(z ==)
 					y.put(list[0],list[1]);
@@ -188,7 +195,7 @@ class OutputFile extends Exception{
 		boolean a = true;
 		try{
 			for(int i = 0; i < 2; i++){
-				File file = new File(x + y);
+				File file = new File(x + File.separator + y);
 				if(file.exists()){
 					FileWriter fw = new FileWriter(file);
 					BufferedWriter bw = new BufferedWriter(fw);
@@ -238,14 +245,15 @@ public class Main {
 
 		//支店定義ファイルの読み込み
 		OpenFile openBran = new OpenFile();
-		exception = openBran.Open(args[0] + "\\branch.lst", branch, "支店");
+		exception = openBran.Open(args[0] + File.separator + "branch.lst", branch, "支店");
 		//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 		if(!exception){
 			return;
 		}
+		//System.out.println(branch);//デバッグ用
 		//商品定義ファイルの読み込み
 		OpenFile openCom = new OpenFile();
-		exception = openCom.Open(args[0] + "\\commodity.lst", commodity, "商品");
+		exception = openCom.Open(args[0] + File.separator + "commodity.lst", commodity, "商品");
 		//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 		if(!exception){
 			return;
@@ -288,7 +296,7 @@ public class Main {
 				for (int i = 0 ; i < dirCounter; i++){
 					//System.out.println("デバッグ！");//デバッグ用
 					//連番確認処理
-					String checkName =  "\\d{8}.rcd";
+					String checkName =  "^\\d{8}.rcd$";
 					Pattern p = Pattern.compile(checkName);
 					//System.out.println(p);//デバッグ用
 					String name = rcdList.get(i);
@@ -356,7 +364,7 @@ public class Main {
 		//売上ファイルのデータ読み込み
 		try {
 			for(int i = 0; i < rcdName.size(); i++){
-				File rcdFile = new File (args[0] + "\\" + rcdName.get(String.valueOf(i + 1)));
+				File rcdFile = new File (args[0] + File.separator + rcdName.get(String.valueOf(i + 1)));
 				FileReader rcdFileRead = new FileReader(rcdFile);
 				BufferedReader rcdBuffRead = new BufferedReader(rcdFileRead);
 				String strRcd;
@@ -420,14 +428,14 @@ public class Main {
 		//ファイル操作
 		//branch.out
 		OutputFile outBran = new OutputFile();
-		exception = outBran.OutPut(args[0], "\\branch.out", outBranList);
+		exception = outBran.OutPut(args[0], "branch.out", outBranList);
 		//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 		if(!exception){
 			return;
 		}
 		//commodity.out
 		OutputFile outCom = new OutputFile();
-		exception = outCom.OutPut(args[0], "\\commodity.out", outComList);
+		exception = outCom.OutPut(args[0], "commodity.out", outComList);
 		//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 		if(!exception){
 			return;
