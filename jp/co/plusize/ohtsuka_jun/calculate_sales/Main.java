@@ -231,7 +231,7 @@ public class Main {
 		//例外処理を判定する変数
 		boolean exception = true;
 		if(args.length != 1){
-			System.out.println("args");//デバッグ用
+			//System.out.println("args");//デバッグ用
 			System.out.println("予期せぬエラーが発生しました");
 			return;
 		}
@@ -278,13 +278,32 @@ public class Main {
 		}
 		//System.out.println(rcdList.get(0));//デバッグ用
 
-		//rcdListの途中にディレクトリが存在するならエラー
-		if(dirCounter != iCounter){
-			System.out.println("売上ファイルが連番ではありません");
-			return;
-		}else if(dirCounter == iCounter){
-			//rcdListの最後がディレクトリなので最後を除きput
-			for (int i = 0 ; i < dirCounter; i++){
+		if(dirCounter > 0){//rcdの名前を持つディレクトリが存在する場合
+			//rcdListの途中にディレクトリが存在するならエラー
+			if(dirCounter != iCounter){
+				System.out.println("売上ファイルが連番ではありません");
+				return;
+			}else if(dirCounter == iCounter){
+				//rcdListの最後がディレクトリなので最後を除きput
+				for (int i = 0 ; i < dirCounter; i++){
+					//System.out.println("デバッグ！");//デバッグ用
+					//連番確認処理
+					String checkName =  "\\d{8}.rcd";
+					Pattern p = Pattern.compile(checkName);
+					//System.out.println(p);//デバッグ用
+					String name = rcdList.get(i);
+					//System.out.println(name);//デバッグ用
+					Matcher m = p.matcher(name);
+					if(m.find()){
+						//System.out.println("できてる！");//デバッグ用
+						String key = String.valueOf(i + 1);
+						rcdName.put(key,rcdList.get(i));
+						//System.out.println(rcdName);//デバッグ用
+					}//if(m.find())~~
+				}//for(int i;)~~
+			}//if(dirCounter !=)~~
+		}else{//rcdの名前を持つディレクトリがない場合
+			for (int i = 0 ; i < rcdList.size(); i++){
 				//System.out.println("デバッグ！");//デバッグ用
 				//連番確認処理
 				String checkName =  "\\d{8}.rcd";
@@ -300,11 +319,11 @@ public class Main {
 					//System.out.println(rcdName);//デバッグ用
 				}//if(m.find())~~
 			}//for(int i;)~~
-		}//if
+		}//if(dirCounter > 0)~~
 
 		//rcdファイルが0だった場合のエラー処理
 		if(rcdName.size() ==0){
-			System.out.print("０だよ");
+			//System.out.print("０だよ");//デバッグ用
 			System.out.println("売上ファイルが連番ではありません");
 			return;
 		}//if(rudName.size == 0)~~
@@ -380,7 +399,7 @@ public class Main {
 
 			}//for(int i;~~)
 		} catch(IOException e){
-			System.out.println("IO");//デバッグ用
+			//System.out.println("IO");//デバッグ用
 			System.out.println(e);
 			return;
 		}//try~catch
