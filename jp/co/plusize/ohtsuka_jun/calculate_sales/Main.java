@@ -45,13 +45,21 @@ class OpenFile extends Exception {
 					}//if(list.length)~~
 					//ファイルのコードフォーマットが適切かどうかの確認
 					if(z == "支店"){
-						if(list[0].length() != 3){
+						String checkName =  "\\d{3}";
+						Pattern p = Pattern.compile(checkName);
+						String name = list[0];
+						Matcher m = p.matcher(name);
+						if(!m.find()){
 							System.out.println(z + "定義ファイルのフォーマットが不正です");
 							a = false;
 						}//if(errorCheck)//支店
 					} else
 					if(z == "商品"){
-						if(list[0].length() != 8){
+						String checkName =  "[a-zA-Z]{3}\\d{5}";
+						Pattern p = Pattern.compile(checkName);
+						String name = list[0];
+						Matcher m = p.matcher(name);
+						if(!m.find()){
 							System.out.println(z + "定義ファイルのフォーマットが不正です");
 							a = false;
 						}
@@ -64,6 +72,7 @@ class OpenFile extends Exception {
 			}
 		}catch (IOException e){
 			System.out.println(z + "定義ファイルが存在しません");
+			a = false;
 		}finally{
 			return a;
 		}
@@ -221,18 +230,23 @@ public class Main {
 		HashMap<String, String> rcdName = new HashMap<String, String>();
 		//例外処理を判定する変数
 		boolean exception = true;
+		System.out.println(args[0]);
+		if(args.length != 1){
+			System.out.println("予期せぬエラーが発生しました");
+			return;
+		}
 
 		//支店定義ファイルの読み込み
 		OpenFile openBran = new OpenFile();
 		exception = openBran.Open(args[0] + "\\branch.lst", branch, "支店");
-		//System.out.println(branch);//デバッグ用
+		//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 		if(!exception){
 			return;
 		}
 		//商品定義ファイルの読み込み
 		OpenFile openCom = new OpenFile();
 		exception = openCom.Open(args[0] + "\\commodity.lst", commodity, "商品");
-		//boolean checkException = (exception == 1);
+		//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 		if(!exception){
 			return;
 		}
@@ -246,33 +260,23 @@ public class Main {
 		try{
 			//rcdファイル名の確認
 			for (int i = 0; i < files.length; i++){
-				String fileRcd = files[i];
 				//rcdファイルだけを抜き出し処理する
-				if(fileRcd.contains("rcd")){
+				//連番確認処理
+				String checkName =  "\\d{8}.rcd";
+				Pattern p = Pattern.compile(checkName);
+				String name = files[i];
+				Matcher m = p.matcher(name);
+				if(m.find()){
+					System.out.println("できてる！");//デバッグ用
 					String key = String.valueOf(i +1);
-					//ファイル名が8桁+.rcdじゃないファイルをはじく処理
-					if(files[i].length() == 12){
 						rcdName.put(key,files[i]);
-					}//if(file[i].length)~~
 				}//if(fileRcd.contains)~~
 			}//for(int i = 0; ~~)
-			int rcdcount = rcdName.size();
-
+			System.out.println(rcdName);
 			//rcdファイルが0だった場合のエラー処理
 			if(rcdName.size() ==0){
 				throw new InvalidException("予期せぬエラーが発生しました");
 			}//if(rudName.size == 0)~~
-
-			//連番確認処理
-			for(int i = 1; i <= rcdcount; i++){
-				String checkName = String.valueOf(i) + ".rcd" + "$";
-				Pattern p = Pattern.compile(checkName);
-				String name = rcdName.get(String.valueOf(i));
-				Matcher m = p.matcher(name);
-				if(m.find() == false){
-					throw new InvalidException("売上ファイル名が連番ではありません");
-				}//if
-			}//for(i = 1; ~~)
 		} catch(InvalidException e){
 			System.out.println(e);
 			return;
@@ -322,12 +326,14 @@ public class Main {
 				//支店コードと一致しているかの判定
 				CheckCode codeBran = new CheckCode();
 				exception = codeBran.Check(branch, listRcd, sumBran, rcdName, i, "支店");
+				//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 				if(!exception){
 					return;
 				}
 				//商品コードと一致しているかの判定
 				CheckCode codeCom = new CheckCode();
 				exception = codeCom.Check(commodity, listRcd, sumCom, rcdName, i, "商品");
+				//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 				if(!exception){
 					return;
 				}
@@ -358,15 +364,17 @@ public class Main {
 		//branch.out
 		OutputFile outBran = new OutputFile();
 		exception = outBran.OutPut(args[0], "\\branch.out", outBranList);
+		//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 		if(!exception){
 			return;
 		}
 		//commodity.out
 		OutputFile outCom = new OutputFile();
 		exception = outCom.OutPut(args[0], "\\commodity.out", outComList);
+		//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 		if(!exception){
 			return;
 		}
 
 	}//void main
-}//class MAIN
+}//class Main
