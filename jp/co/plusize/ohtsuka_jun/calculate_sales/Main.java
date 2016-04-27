@@ -252,54 +252,39 @@ public class Main {
 		File dir = new File(path);
 		File[] fileList = dir.listFiles();
 		String[] files = dir.list();
-		ArrayList<String> rcdList = new ArrayList<>();
 
+		int keyCount = 1;
 		//.rcdの名前がついているものだけを抜き出し
 		for (int i = 0 ; i < fileList.length ; i++){
+			//抜き出したものの名前が一致しているかどうか判定
 			String checkName =  "^\\d{8}.rcd$";
 			Pattern p = Pattern.compile(checkName);
 			String name = files[i];
 			Matcher m = p.matcher(name);
-			if(m.find()){
-				rcdList.add(files[i]);
+			if(m.find()){//一致していたら行う処理
+				//抜き出したものがファイルかフォルダーかを判定
+				if (fileList[i].isFile()){//ファイルだったときだけrcdNameにぶちこむ
+					rcdName.put(keyCount,files[i]);
+					keyCount++;
+				}//if(fileList[i])
 			}//if(m.find())~~
-		}//for(int i;)~~
-
-		//ディレクトリかファイルかを判定
-		for (int i = 0 ; i < rcdList.size() ; i++){
-			for(int j = 0; j < fileList.length; j++){
-				if(rcdList.get(i).equals(files[j])){
-					if (!fileList[j].isFile()){
-						// ディレクトリだった時、そいつを弾く
-						rcdList.remove(i);
-					}//if(fileList[i])
-				}//if(rcdList.get(i))
-			}//for(int j;)
-		}//for(int i;)
-
-		//rcdNameにぶち込む処理
-		for(int i = 0; i < rcdList.size(); i++){
-			int key = (i + 1);
-			rcdName.put(key,rcdList.get(i));
 		}//for(int i;)~~
 
 		//rcdファイルが0だった場合のエラー処理
 		if(rcdName.size() ==0){
 			System.out.println("売上ファイル名が連番になっていません");
 			return;
-		}//if(rudName.size == 0)~~
+		}
 
 		//連番確認処理
-		String rcd = rcdName.get(1);
-		String[] rcdSpl = rcd.split("\\.");
+		String[] rcdSpl = rcdName.get(1).split("\\.");
 		int min = Integer.valueOf(rcdSpl[0]);
-		rcd = rcdName.get(rcdName.size());
-		rcdSpl = rcd.split("\\.");
+		rcdSpl = rcdName.get(rcdName.size()).split("\\.");
 		int max = Integer.valueOf(rcdSpl[0]);
 		if(min + rcdName.size() != max + 1){
 			System.out.println("売上ファイル名が連番になっていません");
 			return;
-		}//if
+		}
 
 		//統計用データ格納作成
 		//支店データ統計用HashMap
@@ -335,7 +320,7 @@ public class Main {
 
 				//売上ファイルのフォーマット(行数)が適正かどうかの判定
 				if(listRcd.size() != 3){
-					System.out.println(rcdName.get(String.valueOf(i + 1)) + "のフォーマットが不正です");
+					System.out.println(rcdName.get(i + 1) + "のフォーマットが不正です");
 					return;
 				}//if(strRcd.len)~~
 
@@ -361,7 +346,6 @@ public class Main {
 		}//try~catch
 
 		//売上データ出力
-
 		//支店合計出力用にマップをソートする
 		ArrayList<String> outBranList = new ArrayList<>();
 		SortMap sortBran = new SortMap();
