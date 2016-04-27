@@ -62,7 +62,7 @@ class OpenFile extends Exception {
 						}//if(errorCheck)//支店
 					} else
 					if(fileName == "商品"){
-						String checkName =  "^[a-zA-Z]{3}\\d{5}$";
+						String checkName =  "^\\p{Alnum}{8}$";
 						Pattern p = Pattern.compile(checkName);
 						String name = list[0];
 						Matcher m = p.matcher(name);
@@ -182,7 +182,7 @@ class OutputFile extends Exception{
 		boolean a = true;
 		try{
 			for(int i = 0; i < 2; i++){
-				File file = new File(argsPass + File.separator + filePass);
+				File file = new File(argsPass, filePass);
 				if(file.exists()){
 					FileWriter fw = new FileWriter(file);
 					BufferedWriter bw = new BufferedWriter(fw);
@@ -235,28 +235,6 @@ public class Main {
 			System.out.println("予期せぬエラーが発生しました");
 			return;
 		}
-		//コマンドライン引数の末尾にセパレート文字があった場合(Windows)
-		//System.out.println(args[0]);//デバッグ用
-		Pattern separatorWin = Pattern.compile("\\\\$");
-		String checkArgs = args[0];
-		Matcher matchWin = separatorWin.matcher(checkArgs);
-		if(matchWin.find()){
-			String result = matchWin.replaceFirst("");
-			//System.out.println(result);//デバッグ用
-			args[0] = result;
-			//System.out.println(args[0]);//デバッグ用
-		}
-
-		//コマンドライン引数の末尾にセパレート文字があった場合(Unix)
-		//System.out.println(args[0]);//デバッグ用
-		Pattern separatorUni = Pattern.compile("////$");
-		Matcher matchUni = separatorUni.matcher(checkArgs);
-		if(matchUni.find()){
-			String result = matchUni.replaceFirst("");
-			//System.out.println(result);//デバッグ用
-			args[0] = result;
-			//System.out.println(args[0]);//デバッグ用
-		}
 
 		//支店定義ファイルの読み込み
 		OpenFile openBran = new OpenFile();
@@ -284,24 +262,34 @@ public class Main {
 		int dirCounter = 0;
 		int iCounter = 0;
 		ArrayList<String> rcdList = new ArrayList<>();
+
 		//.rcdの名前がついているものだけを抜き出し
+		int keyCount = 1;
 		for (int i = 0 ; i < fileList.length ; i++){
-			if(files[i].contains("rcd")){
+			String checkName =  "^\\d{8}.rcd$";
+			Pattern p = Pattern.compile(checkName);
+			//System.out.println(p);//デバッグ用
+			String name = files[i];
+			//System.out.println(name);//デバッグ用
+			Matcher m = p.matcher(name);
+			if(m.find()){
 				rcdList.add(files[i]);
-			}
+				//System.out.println(rcdName);//デバッグ用
+			}//if(m.find())~~
 		}//for(int i;)~~
+
 		//ディレクトリかファイルかを判定
 		for (int i = 0 ; i < rcdList.size() ; i++){
-			if(files[i].contains("rcd")){
-				if (!fileList[i].isFile()){
-					// ディレクトリだった時の処理
-					dirCounter = i;
-					//System.out.println("dir:" + dirCounter);//デバッグ用
-				}//if(files[i])
-			}//if(fileList[i])
+			for(int j = 0; j < fileList.length; j++){
+				if(rcdList.get(i).equals(files[j])){
+					if (!fileList[j].isFile()){
+						// ディレクトリだった時の処理
+						dirCounter = i;
+					}//if(fileList[i])
+				}//if(rcdList.get(i))
+			}//for(int j;)
 			iCounter = i;
-		}
-		//System.out.println(rcdList.get(0));//デバッグ用
+		}//for(int i;)
 
 		if(dirCounter > 0){//rcdの名前を持つディレクトリが存在する場合
 			//rcdListの途中にディレクトリが存在するならエラー
@@ -310,22 +298,7 @@ public class Main {
 				return;
 			}else if(dirCounter == iCounter){
 				//rcdListの最後がディレクトリなので最後を除きput
-				for (int i = 0 ; i < dirCounter; i++){
-					//System.out.println("デバッグ！");//デバッグ用
-					//連番確認処理
-					String checkName =  "^\\d{8}.rcd$";
-					Pattern p = Pattern.compile(checkName);
-					//System.out.println(p);//デバッグ用
-					String name = rcdList.get(i);
-					//System.out.println(name);//デバッグ用
-					Matcher m = p.matcher(name);
-					if(m.find()){
-						//System.out.println("できてる！");//デバッグ用
-						String key = String.valueOf(i + 1);
-						rcdName.put(key,rcdList.get(i));
-						//System.out.println(rcdName);//デバッグ用
-					}//if(m.find())~~
-				}//for(int i;)~~
+
 			}//if(dirCounter !=)~~
 		}else{//rcdの名前を持つディレクトリがない場合
 			for (int i = 0 ; i < rcdList.size(); i++){
@@ -339,8 +312,9 @@ public class Main {
 				Matcher m = p.matcher(name);
 				if(m.find()){
 					//System.out.println("できてる！");//デバッグ用
-					String key = String.valueOf(i + 1);
+					String key = String.valueOf(keyCount);
 					rcdName.put(key,rcdList.get(i));
+					keyCount++;
 					//System.out.println(rcdName);//デバッグ用
 				}//if(m.find())~~
 			}//for(int i;)~~
