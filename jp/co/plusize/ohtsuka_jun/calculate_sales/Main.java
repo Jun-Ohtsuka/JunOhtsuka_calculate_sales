@@ -105,7 +105,7 @@ class CheckCode extends Exception{
 			HashMap<Integer, String> methodRcdName, int loopNum, String fileName){
 		int counter = 0;
 		boolean a = true;
-		for (int j = 0; j <= 99999; j++){
+		for (int j = 0; j <= codeMap.size(); j++){
 			String key = codeMap.get(String.valueOf(j + 1));
 			int code = -1;
 			if(fileName == "商品"){
@@ -113,15 +113,14 @@ class CheckCode extends Exception{
 			} else if(fileName == "支店"){
 				code = 0;
 			}//if(n == )~~
-			if(j == 99999 && counter <= 0){
-				//一つもコードが一緒じゃなかったとき
+			if(j == codeMap.size() && counter <= 0){//一つもコードが一緒じゃなかったとき
 				System.out.println(methodRcdName.get(loopNum + 1) + "の" + fileName +"コードが不正です");
 				a = false;
 				return a;
 			}else if(methodListRcd.get(code).equals(key)){
 				//一致しているので合計に計算
 				if(nameMap.containsKey(key)){
-					Long getSum = Long.valueOf(sumName.get(key));
+					Long getSum = sumName.get(key);
 					Long getVal = Long.valueOf(methodListRcd.get(2));
 					Long sum = getSum + getVal;
 					//合計が10桁以下かどうか
@@ -133,10 +132,7 @@ class CheckCode extends Exception{
 					sumName.put(key,sum);
 					counter++;
 				}
-				if(counter == nameMap.size()){
-					return a;
-				}//if(counter ==)~~
-			}//if(j == 99999)else if(y.get(code).equals(key))
+			}//if(j == codeMap.size())else if(y.get(code).equals(key))
 		}//for(int j;)~~
 		return a;
 	}//boolean Check
