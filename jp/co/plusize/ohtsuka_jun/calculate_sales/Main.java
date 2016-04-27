@@ -25,7 +25,7 @@ class InvalidException extends Exception{
 
 class OpenFile extends Exception {
 	@SuppressWarnings("finally")
-	boolean Open(String argsPass, String filePass, HashMap<String, String> nameMap, String fileName) {
+	boolean Open(String argsPass, String filePass, HashMap<String, String> nameMap, HashMap<String, String> codeMap, String fileName) {
 		boolean a = true;
 		//System.out.println(x);//デバッグ用
 		try {
@@ -35,6 +35,7 @@ class OpenFile extends Exception {
 			BufferedReader buffRead = new BufferedReader(fileRead);
 			String str;
 			String[] list;
+			int keyCount = 1;
 			try{
 				while((str = buffRead.readLine()) != null){
 					//","で分割してHashMapに追加
@@ -72,6 +73,8 @@ class OpenFile extends Exception {
 						}
 					}//if(z ==)
 					nameMap.put(list[0],list[1]);
+					codeMap.put(String.valueOf(keyCount), list[0]);
+					keyCount++;
 				}//while((s = br.readLine()) != null)
 			}finally{
 				buffRead.close();
@@ -88,19 +91,9 @@ class OpenFile extends Exception {
 
 
 class JoinCode{
-	HashMap<String, Long> Join(HashMap<String,String> nameMap, HashMap<String, Long> sumName, String fileName){
+	HashMap<String, Long> Join(HashMap<String,String> nameMap, HashMap<String, String> codeMap, HashMap<String, Long> sumName, String fileName){
 		for (int i = 0; i < 99999; i++){
-			String key = String.valueOf(i + 1);
-			if(fileName == "商品"){
-				while (key.length() < 5){
-					key ="0" + key;
-				}//while(num.length)
-				key ="SFT" + key;
-			}else if(fileName == "支店"){
-				while (key.length() < 3){
-					key ="0" + key;
-				}//while(num.length)
-			}//if(z ==)
+			String key = codeMap.get(String.valueOf(i));
 			if(nameMap.containsKey(key)){
 				sumName.put(key, 0L);
 			}//if(x.containsKey)~~
@@ -114,22 +107,16 @@ class JoinCode{
 
 
 class CheckCode extends Exception{
-	boolean Check(HashMap<String, String> nameMap, ArrayList<String> methodListRcd, HashMap<String, Long> sumName, HashMap<String, String> methodRcdName, int loopNum, String fileName){
+	boolean Check(HashMap<String, String> nameMap,HashMap<String, String> codeMap, ArrayList<String> methodListRcd, HashMap<String, Long> sumName,
+			HashMap<String, String> methodRcdName, int loopNum, String fileName){
 		int counter = 0;
 		boolean a = true;
 		for (int j = 0; j <= 99999; j++){
-			String key = String.valueOf(j + 1);
+			String key = codeMap.get(String.valueOf(j + 1));
 			int code = -1;
 			if(fileName == "商品"){
-				while (key.length() < 5){
-					key ="0" + key;
-				}//while(key.len)
-				key = "SFT" + key;
 				code = 1;
 			} else if(fileName == "支店"){
-				while (key.length() < 3){
-					key ="0" + key;
-				}//while(key.len)
 				code = 0;
 			}//if(n == )~~
 			if(j == 99999 && counter <= 0){
@@ -194,22 +181,35 @@ class OutputFile extends Exception{
 	boolean OutPut(String argsPass, String filePass, ArrayList<String> outPutList){
 		boolean a = true;
 		try{
-			File file = new File(argsPass, filePass);
-			file.createNewFile();
-			//System.out.println(y + "ファイルを作成しました");//デバッグ用
-			FileWriter fw = new FileWriter(file);
-			BufferedWriter bw = new BufferedWriter(fw);
-			for(int f = 0; f < outPutList.size(); f++){
-				bw.write(outPutList.get(f) + "\r\n");
-			}//for(int f;)~~
-			bw.close();
-			fw.close();
-			//System.out.println(y + "ファイルの書き込み完了");//デバッグ用
+			for(int i = 0; i < 2; i++){
+				File file = new File(argsPass + File.separator + filePass);
+				if(file.exists()){
+					FileWriter fw = new FileWriter(file);
+					BufferedWriter bw = new BufferedWriter(fw);
+					for(int f = 0; f < outPutList.size(); f++){
+						bw.write(outPutList.get(f) + "\r\n");
+					}//for(int f;)~~
+					bw.close();
+					fw.close();
+					//System.out.println(filePass + "ファイルの書き込み完了");//デバッグ用
+					break;
+				}else{
+					//ない場合ファイルを作成する
+					try{
+						file.createNewFile();
+						//System.out.println(filePass  + "ファイルを作成しました");//デバッグ用
+					}catch(IOException e){
+						System.out.println("予期せぬエラーが発生しました");
+						a = false;
+						return a;
+					}//try~~catch
+				}//if~~else
+			}//for(int i;)~~
 		}catch(IOException e){
-			System.out.println(e);
+			System.out.println("予期せぬエラーが発生しました");
 			a = false;
 			return a;
-		}//try~~Catch
+		}//try
 		return a;
 	}//boolean OutPut
 }//class
@@ -217,23 +217,51 @@ class OutputFile extends Exception{
 
 public class Main {
 	public static void main(String[] args) {
-		//店舗データを保存するためのHashMap
+		//支店データを保存するためのHashMap
 		HashMap<String, String> branch = new HashMap<>();
+		//支店コードを保存するためのHashMap
+		HashMap<String, String> branchCode = new HashMap<>();
 		//商品データを保存するためのHashMap
 		HashMap<String, String> commodity = new HashMap<>();
+		//商品コードを保存するためのHashMap
+		HashMap<String, String> commodityCode = new HashMap<>();
 		//売上データのファイル名を保存するためのHashMap
 		HashMap<String, String> rcdName = new HashMap<>();
 		//例外処理を判定する変数
 		boolean exception = true;
+		//コマンドライン引数に2個以上の値が渡されていた場合
 		if(args.length != 1){
 			//System.out.println("args");//デバッグ用
 			System.out.println("予期せぬエラーが発生しました");
 			return;
 		}
+		//コマンドライン引数の末尾にセパレート文字があった場合(Windows)
+		//System.out.println(args[0]);//デバッグ用
+		Pattern separatorWin = Pattern.compile("\\\\$");
+		String checkArgs = args[0];
+		Matcher matchWin = separatorWin.matcher(checkArgs);
+		if(matchWin.find()){
+			String result = matchWin.replaceFirst("");
+			//System.out.println(result);//デバッグ用
+			args[0] = result;
+			//System.out.println(args[0]);//デバッグ用
+		}
+
+		//コマンドライン引数の末尾にセパレート文字があった場合(Unix)
+		//System.out.println(args[0]);//デバッグ用
+		Pattern separatorUni = Pattern.compile("////$");
+		Matcher matchUni = separatorUni.matcher(checkArgs);
+		if(matchUni.find()){
+			String result = matchUni.replaceFirst("");
+			//System.out.println(result);//デバッグ用
+			args[0] = result;
+			//System.out.println(args[0]);//デバッグ用
+		}
 
 		//支店定義ファイルの読み込み
 		OpenFile openBran = new OpenFile();
-		exception = openBran.Open(args[0] , "branch.lst", branch, "支店");
+		exception = openBran.Open(args[0] , "branch.lst", branch, branchCode, "支店");
+		//System.out.println(branchCode);//デバッグ用
 		//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 		if(!exception){
 			return;
@@ -241,7 +269,8 @@ public class Main {
 		//System.out.println(branch);//デバッグ用
 		//商品定義ファイルの読み込み
 		OpenFile openCom = new OpenFile();
-		exception = openCom.Open(args[0] , "commodity.lst", commodity, "商品");
+		exception = openCom.Open(args[0] , "commodity.lst", commodity, commodityCode, "商品");
+		//System.out.println(commodityCode);//デバッグ用
 		//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 		if(!exception){
 			return;
@@ -277,7 +306,7 @@ public class Main {
 		if(dirCounter > 0){//rcdの名前を持つディレクトリが存在する場合
 			//rcdListの途中にディレクトリが存在するならエラー
 			if(dirCounter != iCounter){
-				System.out.println("売上ファイル名が連番ではありません");
+				System.out.println("売上ファイル名が連番になっていません");
 				return;
 			}else if(dirCounter == iCounter){
 				//rcdListの最後がディレクトリなので最後を除きput
@@ -320,7 +349,7 @@ public class Main {
 		//rcdファイルが0だった場合のエラー処理
 		if(rcdName.size() ==0){
 			//System.out.print("０だよ");//デバッグ用
-			System.out.println("売上ファイル名が連番ではありません");
+			System.out.println("売上ファイル名が連番になっていません");
 			return;
 		}//if(rudName.size == 0)~~
 
@@ -331,7 +360,7 @@ public class Main {
 			String name = rcdName.get(String.valueOf(i));
 			Matcher m = p.matcher(name);
 			if(m.find() == false){
-				System.out.println("売上ファイル名が連番ではありません");
+				System.out.println("売上ファイル名が連番になっていません");
 				return;
 			}//if
 		}//for(i = 1; ~~)
@@ -344,10 +373,12 @@ public class Main {
 
 		//統計用HashMapに支店コードと合計を結びつける処理
 		JoinCode mapCodeBran = new JoinCode();
-		mapCodeBran.Join(branch, sumBran,"支店");
+		mapCodeBran.Join(branch, branchCode, sumBran, "支店");
+		//System.out.println(sumBran);//デバッグ用
 		//統計用HashMapに商品コードと合計を結びつける処理
 		JoinCode mapCodeCom = new JoinCode();
-		mapCodeCom.Join(commodity,sumCom,"商品");
+		mapCodeCom.Join(commodity, commodityCode, sumCom, "商品");
+		//System.out.println(sumCom);//デバッグ用
 
 		//売上ファイルのデータ読み込み
 		try {
@@ -380,14 +411,14 @@ public class Main {
 
 				//支店コードと一致しているかの判定
 				CheckCode codeBran = new CheckCode();
-				exception = codeBran.Check(branch, listRcd, sumBran, rcdName, i, "支店");
+				exception = codeBran.Check(branch, branchCode, listRcd, sumBran, rcdName, i, "支店");
 				//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 				if(!exception){
 					return;
 				}
 				//商品コードと一致しているかの判定
 				CheckCode codeCom = new CheckCode();
-				exception = codeCom.Check(commodity, listRcd, sumCom, rcdName, i, "商品");
+				exception = codeCom.Check(commodity, commodityCode, listRcd, sumCom, rcdName, i, "商品");
 				//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 				if(!exception){
 					return;
