@@ -277,9 +277,8 @@ public class Main {
 		}
 
 		//連番確認処理
-		String[] rcdSpl = rcdName.get(1).split("\\.");
-		int min = Integer.valueOf(rcdSpl[0]);
-		rcdSpl = rcdName.get(rcdName.size()).split("\\.");
+		int min = 1;
+		String[] rcdSpl = rcdName.get(rcdName.size()).split("\\.");
 		int max = Integer.valueOf(rcdSpl[0]);
 		if(min + rcdName.size() != max + 1){
 			System.out.println("売上ファイル名が連番になっていません");
