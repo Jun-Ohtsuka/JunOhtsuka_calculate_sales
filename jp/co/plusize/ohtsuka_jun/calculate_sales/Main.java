@@ -301,18 +301,6 @@ public class Main {
 			return;
 		}//if
 
-//		//連番確認処理
-//		for(int i = 0; i < rcdName.size(); i++){
-//			String checkName = String.valueOf(i + 1) + ".rcd$";
-//			Pattern p = Pattern.compile(checkName);
-//			String name = rcdName.get(i + 1);
-//			Matcher m = p.matcher(name);
-//			if(m.find() == false){
-//				System.out.println("売上ファイル名が連番になっていません");
-//				return;
-//			}//if
-//		}//for(i = 0; ~~)
-
 		//統計用データ格納作成
 		//支店データ統計用HashMap
 		HashMap<String, Long> sumBran = new HashMap<>();
