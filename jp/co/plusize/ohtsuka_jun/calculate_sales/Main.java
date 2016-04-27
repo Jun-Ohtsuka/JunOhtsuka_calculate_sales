@@ -229,7 +229,8 @@ public class Main {
 		HashMap<String, String> rcdName = new HashMap<>();
 		//例外処理を判定する変数
 		boolean exception = true;
-		//コマンドライン引数に2個以上の値が渡されていた場合
+
+		//コマンドライン引数に渡された値が1個以外の場合
 		if(args.length != 1){
 			//System.out.println("args");//デバッグ用
 			System.out.println("予期せぬエラーが発生しました");
