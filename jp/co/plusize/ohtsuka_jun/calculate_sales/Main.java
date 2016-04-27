@@ -30,9 +30,7 @@ class OpenFile extends Exception {
 		//System.out.println(x);//デバッグ用
 		try {
 			//支店定義ファイルのデータを読み込む
-			File file = new File (argsPass,filePass);
-			FileReader fileRead = new FileReader(file);
-			BufferedReader buffRead = new BufferedReader(fileRead);
+			BufferedReader buffRead = new BufferedReader(new FileReader(new File (argsPass,filePass)));
 			String str;
 			String[] list;
 			int keyCount = 1;
@@ -50,11 +48,7 @@ class OpenFile extends Exception {
 					if(fileName == "支店"){
 						String checkName =  "^\\d{3}$";
 						Pattern p = Pattern.compile(checkName);
-						//System.out.println(p);//デバッグ用
-						//String name = list[0];//デバッグ用
-						//System.out.println(list[0]);//デバッグ用
 						Matcher m = p.matcher(list[0]);
-						//System.out.println(m.find() == false);//デバッグ用
 						if(m.find() == false){
 							System.out.println(fileName + "定義ファイルのフォーマットが不正です");
 							a = false;
@@ -78,7 +72,6 @@ class OpenFile extends Exception {
 				}//while((s = br.readLine()) != null)
 			}finally{
 				buffRead.close();
-				fileRead.close();
 			}
 		}catch (IOException e){
 			System.out.println(fileName + "定義ファイルが存在しません");
@@ -91,9 +84,10 @@ class OpenFile extends Exception {
 
 
 class JoinCode{
-	HashMap<String, Long> Join(HashMap<String,String> nameMap, HashMap<String, String> codeMap, HashMap<String, Long> sumName, String fileName){
-		for (int i = 0; i < 99999; i++){
-			String key = codeMap.get(String.valueOf(i));
+	HashMap<String, Long> Join(HashMap<String,String> nameMap, HashMap<String, String> codeMap, String fileName){
+		HashMap<String, Long> sumName = new HashMap<>();
+		for (int i = 0; i < codeMap.size(); i++){
+			String key = codeMap.get(String.valueOf(i + 1));
 			if(nameMap.containsKey(key)){
 				sumName.put(key, 0L);
 			}//if(x.containsKey)~~
@@ -108,7 +102,7 @@ class JoinCode{
 
 class CheckCode extends Exception{
 	boolean Check(HashMap<String, String> nameMap,HashMap<String, String> codeMap, ArrayList<String> methodListRcd, HashMap<String, Long> sumName,
-			HashMap<String, String> methodRcdName, int loopNum, String fileName){
+			HashMap<Integer, String> methodRcdName, int loopNum, String fileName){
 		int counter = 0;
 		boolean a = true;
 		for (int j = 0; j <= 99999; j++){
@@ -121,7 +115,7 @@ class CheckCode extends Exception{
 			}//if(n == )~~
 			if(j == 99999 && counter <= 0){
 				//一つもコードが一緒じゃなかったとき
-				System.out.println(methodRcdName.get(String.valueOf(loopNum + 1)) + "の" + fileName +"コードが不正です");
+				System.out.println(methodRcdName.get(loopNum + 1) + "の" + fileName +"コードが不正です");
 				a = false;
 				return a;
 			}else if(methodListRcd.get(code).equals(key)){
@@ -131,7 +125,6 @@ class CheckCode extends Exception{
 					Long getVal = Long.valueOf(methodListRcd.get(2));
 					Long sum = getSum + getVal;
 					//合計が10桁以下かどうか
-					//System.out.println("sum : " + sum);//デバッグ用
 					if(String.valueOf(sum).length() > 10){
 						System.out.println("合計金額が10桁を超えました");
 						a = false;
@@ -152,7 +145,7 @@ class CheckCode extends Exception{
 
 class SortMap{
 	ArrayList<String> Sort(HashMap<String, Long> sumName, HashMap<String,String> nameMap){
-		ArrayList<String> z = new ArrayList<String>();
+		ArrayList<String> z = new ArrayList<>();
 		//Map.Entry のリストを作る
 		List<Entry<String, Long>> entries = new ArrayList<Entry<String, Long>>(sumName.entrySet());
 		//Comparator で Map.Entry の値を比較
@@ -163,13 +156,13 @@ class SortMap{
 				return o2.getValue().compareTo(o1.getValue());//降順
 			}
 		});
-		//outList.add(entries.get(0));
 		//並び替えたエントリーマップを1行ごとに連結してリストに格納
 		for (Entry<String, Long> e : entries) {
 			String outKey = e.getKey();
 			String outName = nameMap.get(outKey);
 			String outVal = String.valueOf(e.getValue());
 			String out = outKey + "," + outName + "," + outVal;//1行に連結
+			//System.out.println(out);//デバッグ用
 			z.add(out);
 		}//for
 		return z;
@@ -226,13 +219,12 @@ public class Main {
 		//商品コードを保存するためのHashMap
 		HashMap<String, String> commodityCode = new HashMap<>();
 		//売上データのファイル名を保存するためのHashMap
-		HashMap<String, String> rcdName = new HashMap<>();
+		HashMap<Integer, String> rcdName = new HashMap<>();
 		//例外処理を判定する変数
 		boolean exception = true;
 
 		//コマンドライン引数に渡された値が1個以外の場合
 		if(args.length != 1){
-			//System.out.println("args");//デバッグ用
 			System.out.println("予期せぬエラーが発生しました");
 			return;
 		}
@@ -245,7 +237,7 @@ public class Main {
 		if(!exception){
 			return;
 		}
-		//System.out.println(branch);//デバッグ用
+
 		//商品定義ファイルの読み込み
 		OpenFile openCom = new OpenFile();
 		exception = openCom.Open(args[0] , "commodity.lst", commodity, commodityCode, "商品");
@@ -260,22 +252,16 @@ public class Main {
 		File dir = new File(path);
 		File[] fileList = dir.listFiles();
 		String[] files = dir.list();
-		int dirCounter = 0;
-		int iCounter = 0;
 		ArrayList<String> rcdList = new ArrayList<>();
 
 		//.rcdの名前がついているものだけを抜き出し
-		int keyCount = 1;
 		for (int i = 0 ; i < fileList.length ; i++){
 			String checkName =  "^\\d{8}.rcd$";
 			Pattern p = Pattern.compile(checkName);
-			//System.out.println(p);//デバッグ用
 			String name = files[i];
-			//System.out.println(name);//デバッグ用
 			Matcher m = p.matcher(name);
 			if(m.find()){
 				rcdList.add(files[i]);
-				//System.out.println(rcdName);//デバッグ用
 			}//if(m.find())~~
 		}//for(int i;)~~
 
@@ -284,61 +270,53 @@ public class Main {
 			for(int j = 0; j < fileList.length; j++){
 				if(rcdList.get(i).equals(files[j])){
 					if (!fileList[j].isFile()){
-						// ディレクトリだった時の処理
-						dirCounter = i;
+						// ディレクトリだった時、そいつを弾く
+						rcdList.remove(i);
 					}//if(fileList[i])
 				}//if(rcdList.get(i))
 			}//for(int j;)
-			iCounter = i;
 		}//for(int i;)
 
-		if(dirCounter > 0){//rcdの名前を持つディレクトリが存在する場合
-			//rcdListの途中にディレクトリが存在するならエラー
-			if(dirCounter != iCounter){
-				System.out.println("売上ファイル名が連番になっていません");
-				return;
-			}else if(dirCounter == iCounter){
-				//rcdListの最後がディレクトリなので最後を除きput
-
-			}//if(dirCounter !=)~~
-		}else{//rcdの名前を持つディレクトリがない場合
-			for (int i = 0 ; i < rcdList.size(); i++){
-				//System.out.println("デバッグ！");//デバッグ用
-				//連番確認処理
-				String checkName =  "^\\d{8}.rcd$";
-				Pattern p = Pattern.compile(checkName);
-				//System.out.println(p);//デバッグ用
-				String name = rcdList.get(i);
-				//System.out.println(name);//デバッグ用
-				Matcher m = p.matcher(name);
-				if(m.find()){
-					//System.out.println("できてる！");//デバッグ用
-					String key = String.valueOf(keyCount);
-					rcdName.put(key,rcdList.get(i));
-					keyCount++;
-					//System.out.println(rcdName);//デバッグ用
-				}//if(m.find())~~
-			}//for(int i;)~~
-		}//if(dirCounter > 0)~~
+		//rcdNameにぶち込む処理
+		for(int i = 0; i < rcdList.size(); i++){
+			int key = (i + 1);
+			rcdName.put(key,rcdList.get(i));
+		}//for(int i;)~~
 
 		//rcdファイルが0だった場合のエラー処理
 		if(rcdName.size() ==0){
-			//System.out.print("０だよ");//デバッグ用
 			System.out.println("売上ファイル名が連番になっていません");
 			return;
 		}//if(rudName.size == 0)~~
 
 		//連番確認処理
-		for(int i = 1; i <= rcdName.size(); i++){
-			String checkName = String.valueOf(i) + ".rcd$";
-			Pattern p = Pattern.compile(checkName);
-			String name = rcdName.get(String.valueOf(i));
-			Matcher m = p.matcher(name);
-			if(m.find() == false){
-				System.out.println("売上ファイル名が連番になっていません");
-				return;
-			}//if
-		}//for(i = 1; ~~)
+		System.out.println(rcdName);//デバッグ用
+		String rcd = rcdName.get(1);
+		//System.out.println(rcd);//デバッグ用
+		String[] rcdSpl = rcd.split("\\.");
+		//System.out.println(rcdSpl[0]);//デバッグ用
+		int min = Integer.valueOf(rcdSpl[0]);
+		System.out.println("min : " + min);//デバッグ用
+		rcd = rcdName.get(rcdName.size());
+		rcdSpl = rcd.split("\\.");
+		int max = Integer.valueOf(rcdSpl[0]);
+		System.out.println("max : " + max);//デバッグ用
+		if(min + rcdName.size() != max + 1){
+			System.out.println("売上ファイル名が連番になっていません");
+			return;
+		}//if
+
+//		//連番確認処理
+//		for(int i = 0; i < rcdName.size(); i++){
+//			String checkName = String.valueOf(i + 1) + ".rcd$";
+//			Pattern p = Pattern.compile(checkName);
+//			String name = rcdName.get(i + 1);
+//			Matcher m = p.matcher(name);
+//			if(m.find() == false){
+//				System.out.println("売上ファイル名が連番になっていません");
+//				return;
+//			}//if
+//		}//for(i = 0; ~~)
 
 		//統計用データ格納作成
 		//支店データ統計用HashMap
@@ -348,19 +326,15 @@ public class Main {
 
 		//統計用HashMapに支店コードと合計を結びつける処理
 		JoinCode mapCodeBran = new JoinCode();
-		mapCodeBran.Join(branch, branchCode, sumBran, "支店");
-		//System.out.println(sumBran);//デバッグ用
+		sumBran = mapCodeBran.Join(branch, branchCode, "支店");
 		//統計用HashMapに商品コードと合計を結びつける処理
 		JoinCode mapCodeCom = new JoinCode();
-		mapCodeCom.Join(commodity, commodityCode, sumCom, "商品");
-		//System.out.println(sumCom);//デバッグ用
+		sumCom = mapCodeCom.Join(commodity, commodityCode, "商品");
 
 		//売上ファイルのデータ読み込み
 		try {
 			for(int i = 0; i < rcdName.size(); i++){
-				File rcdFile = new File (args[0] + File.separator + rcdName.get(String.valueOf(i + 1)));
-				FileReader rcdFileRead = new FileReader(rcdFile);
-				BufferedReader rcdBuffRead = new BufferedReader(rcdFileRead);
+				BufferedReader rcdBuffRead = new BufferedReader(new FileReader(new File (args[0], rcdName.get(i + 1))));
 				String strRcd;
 				ArrayList<String> listRcd = new ArrayList<String>();
 
@@ -374,7 +348,6 @@ public class Main {
 					return;
 				} finally{
 					rcdBuffRead.close();
-					rcdFileRead.close();
 				}//try~~
 
 				//売上ファイルのフォーマット(行数)が適正かどうかの判定
@@ -382,7 +355,6 @@ public class Main {
 					System.out.println(rcdName.get(String.valueOf(i + 1)) + "のフォーマットが不正です");
 					return;
 				}//if(strRcd.len)~~
-				//System.out.println(listRcd);//デバッグ用
 
 				//支店コードと一致しているかの判定
 				CheckCode codeBran = new CheckCode();
@@ -401,7 +373,6 @@ public class Main {
 
 			}//for(int i;~~)
 		} catch(IOException e){
-			//System.out.println("IO");//デバッグ用
 			System.out.println(e);
 			return;
 		}//try~catch
@@ -412,7 +383,6 @@ public class Main {
 		ArrayList<String> outBranList = new ArrayList<>();
 		SortMap sortBran = new SortMap();
 		outBranList = sortBran.Sort(sumBran, branch);
-		//System.out.println(outBranList);//デバッグ用
 
 		//商品合計出力用にマップをソートする
 		ArrayList<String> outComList = new ArrayList<>();
