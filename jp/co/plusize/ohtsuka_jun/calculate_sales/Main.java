@@ -27,7 +27,6 @@ class OpenFile extends Exception {
 	@SuppressWarnings("finally")
 	boolean Open(String argsPass, String filePass, HashMap<String, String> nameMap, HashMap<String, String> codeMap, String fileName) {
 		boolean a = true;
-		//System.out.println(x);//デバッグ用
 		try {
 			//支店定義ファイルのデータを読み込む
 			BufferedReader buffRead = new BufferedReader(new FileReader(new File (argsPass,filePass)));
@@ -135,7 +134,6 @@ class SortMap{
 		ArrayList<String> z = new ArrayList<>();
 		//Map.Entry のリストを作る
 		List<Entry<String, Long>> entries = new ArrayList<Entry<String, Long>>(sumName.entrySet());
-		System.out.println(entries);//デバッグ用
 		//Comparator で Map.Entry の値を比較
 		Collections.sort(entries, new Comparator<Entry<String, Long>>() {
 			//比較関数
@@ -161,13 +159,14 @@ class OutputFile extends Exception{
 			for(int i = 0; i < 2; i++){
 				File file = new File(argsPass, filePass);
 				if(file.exists()){
-					FileWriter fw = new FileWriter(file);
-					BufferedWriter bw = new BufferedWriter(fw);
+					BufferedWriter bw = new BufferedWriter(new FileWriter(file));
 					for(int f = 0; f < outPutList.size(); f++){
-						bw.write(outPutList.get(f) + "\r\n");
+						bw.write(outPutList.get(f));
+						if(f+1 != outPutList.size()){
+							bw.newLine();
+						}
 					}//for(int f;)~~
 					bw.close();
-					fw.close();
 					//System.out.println(filePass + "ファイルの書き込み完了");//デバッグ用
 					break;
 				}else{
@@ -216,7 +215,6 @@ public class Main {
 		//支店定義ファイルの読み込み
 		OpenFile openBran = new OpenFile();
 		exception = openBran.Open(args[0] , "branch.lst", branch, branchCode, "支店");
-		//System.out.println(branchCode);//デバッグ用
 		//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 		if(!exception){
 			return;
@@ -225,7 +223,6 @@ public class Main {
 		//商品定義ファイルの読み込み
 		OpenFile openCom = new OpenFile();
 		exception = openCom.Open(args[0] , "commodity.lst", commodity, commodityCode, "商品");
-		//System.out.println(commodityCode);//デバッグ用
 		//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 		if(!exception){
 			return;
