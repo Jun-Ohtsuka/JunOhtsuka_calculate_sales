@@ -162,9 +162,7 @@ class OutputFile extends Exception{
 					BufferedWriter bw = new BufferedWriter(new FileWriter(file));
 					for(int f = 0; f < outPutList.size(); f++){
 						bw.write(outPutList.get(f));
-						if(f+1 != outPutList.size()){
-							bw.newLine();
-						}
+						bw.newLine();
 					}//for(int f;)~~
 					bw.close();
 					//System.out.println(filePass + "ファイルの書き込み完了");//デバッグ用
