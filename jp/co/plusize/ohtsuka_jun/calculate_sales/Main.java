@@ -70,23 +70,6 @@ class OpenFile extends Exception {
 }//class
 
 
-class JoinCode{
-	HashMap<String, Long> Join(HashMap<String,String> nameMap, HashMap<String, String> codeMap, String fileName){
-		HashMap<String, Long> sumName = new HashMap<>();
-		for (int i = 0; i < codeMap.size(); i++){
-			String key = codeMap.get(String.valueOf(i + 1));
-			if(nameMap.containsKey(key)){
-				sumName.put(key, 0L);
-			}//if(x.containsKey)~~
-			if(sumName.size() == nameMap.size()){
-				return sumName;
-			}//if(y,size() ==)~~
-		}//for(int i;~~)
-		return sumName;
-	}
-}
-
-
 class CheckCode extends Exception{
 	boolean Check(HashMap<String, String> nameMap, ArrayList<String> methodListRcd, HashMap<String, Long> sumName,
 			HashMap<Integer, String> methodRcdName, int loopNum, String fileName){
@@ -294,7 +277,7 @@ public class Main {
 
 			}//for(int i;~~)
 		} catch(IOException e){
-			System.out.println(e);
+			System.out.println("予期せぬエラーが発生しました");
 			return;
 		}//try~catch
 
