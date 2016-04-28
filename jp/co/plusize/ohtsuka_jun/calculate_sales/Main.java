@@ -46,8 +46,7 @@ class OpenFile extends Exception {
 					}//if(list.length)~~
 					//ファイルのコードフォーマットが適切かどうかの確認
 					if(fileName == "支店"){
-						String checkName =  "^\\d{3}$";
-						Pattern p = Pattern.compile(checkName);
+						Pattern p = Pattern.compile("^\\d{3}$");
 						Matcher m = p.matcher(list[0]);
 						if(m.find() == false){
 							System.out.println(fileName + "定義ファイルのフォーマットが不正です");
@@ -56,10 +55,8 @@ class OpenFile extends Exception {
 						}//if(errorCheck)//支店
 					} else
 					if(fileName == "商品"){
-						String checkName =  "^\\p{Alnum}{8}$";
-						Pattern p = Pattern.compile(checkName);
-						String name = list[0];
-						Matcher m = p.matcher(name);
+						Pattern p = Pattern.compile("^\\p{Alnum}{8}$");
+						Matcher m = p.matcher(list[0]);
 						if(m.find() == false){
 							System.out.println(fileName + "定義ファイルのフォーマットが不正です");
 							a = false;
@@ -101,39 +98,33 @@ class JoinCode{
 
 
 class CheckCode extends Exception{
-	boolean Check(HashMap<String, String> nameMap,HashMap<String, String> codeMap, ArrayList<String> methodListRcd, HashMap<String, Long> sumName,
+	boolean Check(HashMap<String, String> codeMap, ArrayList<String> methodListRcd, HashMap<String, Long> sumName,
 			HashMap<Integer, String> methodRcdName, int loopNum, String fileName){
-		int counter = 0;
+
 		boolean a = true;
-		for (int j = 0; j <= codeMap.size(); j++){
-			String key = codeMap.get(String.valueOf(j + 1));
-			int code = -1;
-			if(fileName == "商品"){
-				code = 1;
-			} else if(fileName == "支店"){
-				code = 0;
-			}//if(n == )~~
-			if(j == codeMap.size() && counter <= 0){//一つもコードが一緒じゃなかったとき
-				System.out.println(methodRcdName.get(loopNum + 1) + "の" + fileName +"コードが不正です");
+		int code = -1;
+		if(fileName == "商品"){
+			code = 1;
+		} else if(fileName == "支店"){
+			code = 0;
+		}
+		String key = methodListRcd.get(code);
+		//コードがあるかどうかの判定
+		if(codeMap.containsValue (key) == false){
+			System.out.println(methodRcdName.get(loopNum + 1) + "の" + fileName +"コードが不正です");
+			a = false;
+			return a;
+		} else{
+			//コードが一致しているので合計に計算
+			Long sum = Long.valueOf(methodListRcd.get(2)) + sumName.get(key);
+			//合計が10桁以下かどうか
+			if(String.valueOf(sum).length() > 10){
+				System.out.println("合計金額が10桁を超えました");
 				a = false;
 				return a;
-			}else if(methodListRcd.get(code).equals(key)){
-				//一致しているので合計に計算
-				if(nameMap.containsKey(key)){
-					Long getSum = sumName.get(key);
-					Long getVal = Long.valueOf(methodListRcd.get(2));
-					Long sum = getSum + getVal;
-					//合計が10桁以下かどうか
-					if(String.valueOf(sum).length() > 10){
-						System.out.println("合計金額が10桁を超えました");
-						a = false;
-						return a;
-					}//if(String.valueOf(sum))~~
-					sumName.put(key,sum);
-					counter++;
-				}
-			}//if(j == codeMap.size())else if(y.get(code).equals(key))
-		}//for(int j;)~~
+			}//if(String.valueOf(sum))~~
+			sumName.put(key,sum);
+		}
 		return a;
 	}//boolean Check
 }//class
@@ -144,6 +135,7 @@ class SortMap{
 		ArrayList<String> z = new ArrayList<>();
 		//Map.Entry のリストを作る
 		List<Entry<String, Long>> entries = new ArrayList<Entry<String, Long>>(sumName.entrySet());
+		System.out.println(entries);//デバッグ用
 		//Comparator で Map.Entry の値を比較
 		Collections.sort(entries, new Comparator<Entry<String, Long>>() {
 			//比較関数
@@ -154,12 +146,8 @@ class SortMap{
 		});
 		//並び替えたエントリーマップを1行ごとに連結してリストに格納
 		for (Entry<String, Long> e : entries) {
-			String outKey = e.getKey();
-			String outName = nameMap.get(outKey);
-			String outVal = String.valueOf(e.getValue());
-			String out = outKey + "," + outName + "," + outVal;//1行に連結
-			//System.out.println(out);//デバッグ用
-			z.add(out);
+			String outPut = e.getKey() + "," + nameMap.get(e.getKey()) + "," + String.valueOf(e.getValue());//1行に連結
+			z.add(outPut);
 		}//for
 		return z;
 	}
@@ -273,10 +261,9 @@ public class Main {
 		}
 
 		//連番確認処理
-		int min = 1;
 		String[] rcdSpl = rcdName.get(rcdName.size()).split("\\.");
 		int max = Integer.valueOf(rcdSpl[0]);
-		if(min + rcdName.size() != max + 1){
+		if(rcdName.size() != max){
 			System.out.println("売上ファイル名が連番になっていません");
 			return;
 		}
@@ -321,14 +308,14 @@ public class Main {
 
 				//支店コードと一致しているかの判定
 				CheckCode codeBran = new CheckCode();
-				exception = codeBran.Check(branch, branchCode, listRcd, sumBran, rcdName, i, "支店");
+				exception = codeBran.Check(branchCode, listRcd, sumBran, rcdName, i, "支店");
 				//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 				if(!exception){
 					return;
 				}
 				//商品コードと一致しているかの判定
 				CheckCode codeCom = new CheckCode();
-				exception = codeCom.Check(commodity, commodityCode, listRcd, sumCom, rcdName, i, "商品");
+				exception = codeCom.Check(commodityCode, listRcd, sumCom, rcdName, i, "商品");
 				//例外を受け取ったかどうかの判定。受け取っていたらfalseなので実行
 				if(!exception){
 					return;
